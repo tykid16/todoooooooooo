@@ -32,3 +32,13 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Finder (MacOS) folder config
 .DS_Store
+
+# Database files
+*.db
+*.db-journal
+sqlite.db
+sqlite.db-journal
+
+# Bun specific
+bun.lockb
+.bun/
