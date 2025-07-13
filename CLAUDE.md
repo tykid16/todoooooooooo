@@ -4,14 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a TODO application with a planned full-stack architecture:
-- **Frontend**: Next.js with TypeScript (App Router)
-- **Backend**: Hono API server
-- **Database**: SQLite with Drizzle ORM
+This is a TODO application with a full-stack architecture:
+- **Frontend**: Next.js with TypeScript (App Router) - **IMPLEMENTED**
+- **Backend**: Hono API server - **IMPLEMENTED**
+- **Database**: SQLite with Drizzle ORM - **IMPLEMENTED**
 - **Runtime**: Bun
 - **Package Manager**: pnpm (frontend), bun (backend)
 
-The project follows a monorepo structure with separate `frontend/` and `backend/` directories (to be created).
+The project follows a monorepo structure with separate `frontend/` and `backend/` directories.
 
 ## Development Commands
 
@@ -31,29 +31,33 @@ pnpm dev                      # Start development server
 
 ## Project Structure
 
-The planned directory structure:
+The current directory structure:
 ```
 frontend/               # Next.js app (port 3000)
 ├── app/
-│   ├── page.tsx
-│   └── layout.tsx
+│   ├── page.tsx       # Main page with TODO app
+│   ├── layout.tsx     # Root layout
+│   └── globals.css    # Global styles
 ├── components/
-│   ├── TodoList.tsx
-│   ├── TodoItem.tsx
-│   └── TodoForm.tsx
+│   ├── TodoList.tsx   # List component
+│   ├── TodoItem.tsx   # Individual todo item
+│   └── TodoForm.tsx   # Add todo form
 └── lib/
-    └── api.ts         # API communication
+    ├── api.ts         # API client
+    └── types.ts       # TypeScript types
 
 backend/               # Hono app (port 3001)
 ├── src/
-│   ├── index.ts       # Entry point
+│   ├── index.ts       # Entry point & server setup
 │   ├── routes/
-│   │   └── todos.ts   # TODO routes
+│   │   └── todos.ts   # TODO API routes
 │   └── db/
-│       ├── schema.ts  # Drizzle schema
-│       └── index.ts   # DB connection
+│       ├── schema.ts  # Drizzle schema definition
+│       └── index.ts   # Database connection
 ├── drizzle/
-│   └── migrations/    # Migration files
+│   └── migrations/    # Generated migration files
+├── tests/             # Test files
+├── sqlite.db          # SQLite database file
 └── drizzle.config.ts  # Drizzle configuration
 ```
 
@@ -78,13 +82,28 @@ TODO entity:
 }
 ```
 
-## Development Setup
+## Current Status
 
-When implementing this project:
-1. Start with backend setup (Hono + Drizzle + SQLite)
-2. Implement CRUD API endpoints
-3. Create Next.js frontend with component structure
-4. Connect frontend to backend API
-5. Test full functionality
+The project is fully implemented with:
+- ✅ Backend API with all CRUD operations
+- ✅ SQLite database with Drizzle ORM
+- ✅ Frontend UI with Next.js and Tailwind CSS
+- ✅ Full integration between frontend and backend
+- ✅ Type-safe API communication
+- ✅ Test suite for backend
 
-The backend runs on port 3001, frontend on port 3000.
+## Development Notes
+
+- The backend runs on port 3001, frontend on port 3000
+- CORS is configured to allow frontend-backend communication
+- API uses JSON for request/response bodies
+- Database migrations are managed by Drizzle Kit
+- Frontend uses server-side rendering with Next.js App Router
+
+## Testing
+
+Backend tests are available in the `backend/tests/` directory:
+```bash
+cd backend
+bun test
+```
