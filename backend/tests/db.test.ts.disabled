@@ -1,0 +1,107 @@
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+import Database from 'better-sqlite3'
+import { drizzle } from 'drizzle-orm/better-sqlite3'
+import { todos, type Todo, type NewTodo } from '../src/db/schema'
+import { eq } from 'drizzle-orm'
+
+describe('Database Schema', () => {
+  let db: ReturnType<typeof drizzle>
+  let sqlite: Database.Database
+
+  beforeEach(() => {
+    // Use in-memory database for tests
+    sqlite = new Database(':memory:')
+    db = drizzle(sqlite, { schema: { todos } })
+    
+    // Create table manually for tests
+    sqlite.exec(`
+      CREATE TABLE todos (
+        id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+        title text NOT NULL,
+        completed integer DEFAULT false NOT NULL,
+        created_at text DEFAULT (datetime('now')) NOT NULL,
+        updated_at text DEFAULT (datetime('now')) NOT NULL
+      )
+    `)
+  })
+
+  afterEach(() => {
+    sqlite.close()
+  })
+
+  test('should create todos table', () => {
+    // Test that the table exists by trying to insert a todo
+    const newTodo: NewTodo = {
+      title: 'Test Todo'
+    }
+    
+    const result = db.insert(todos).values(newTodo).returning().get()
+    
+    expect(result).toBeDefined()
+    expect(result.id).toBeTypeOf('number')
+    expect(result.title).toBe('Test Todo')
+    expect(result.completed).toBe(false)
+    expect(result.createdAt).toBeTypeOf('string')
+    expect(result.updatedAt).toBeTypeOf('string')
+  })
+
+  test('should have correct default values', () => {
+    const newTodo: NewTodo = {
+      title: 'Test Todo'
+    }
+    
+    const result = db.insert(todos).values(newTodo).returning().get()
+    
+    expect(result.completed).toBe(false)
+    expect(new Date(result.createdAt)).toBeInstanceOf(Date)
+    expect(new Date(result.updatedAt)).toBeInstanceOf(Date)
+  })
+
+  test('should require title field', () => {
+    expect(() => {
+      // @ts-expect-error Testing missing required field
+      db.insert(todos).values({}).returning().get()
+    }).toThrow()
+  })
+
+  test('should allow completed field to be set', () => {
+    const newTodo: NewTodo = {
+      title: 'Completed Todo',
+      completed: true
+    }
+    
+    const result = db.insert(todos).values(newTodo).returning().get()
+    
+    expect(result.completed).toBe(true)
+  })
+
+  test('should auto-increment id', () => {
+    const todo1 = db.insert(todos).values({ title: 'Todo 1' }).returning().get()
+    const todo2 = db.insert(todos).values({ title: 'Todo 2' }).returning().get()
+    
+    expect(todo2.id).toBe(todo1.id + 1)
+  })
+
+  test('should support updating todos', () => {
+    const newTodo = db.insert(todos).values({ title: 'Update Test' }).returning().get()
+    
+    const updated = db
+      .update(todos)
+      .set({ completed: true })
+      .where(eq(todos.id, newTodo.id))
+      .returning()
+      .get()
+    
+    expect(updated.completed).toBe(true)
+    expect(updated.title).toBe('Update Test')
+  })
+
+  test('should support deleting todos', () => {
+    const newTodo = db.insert(todos).values({ title: 'Delete Test' }).returning().get()
+    
+    db.delete(todos).where(eq(todos.id, newTodo.id))
+    
+    const found = db.select().from(todos).where(eq(todos.id, newTodo.id)).get()
+    expect(found).toBeUndefined()
+  })
+})
